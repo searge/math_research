@@ -38,5 +38,8 @@ output-format = "grouped"
 select = ["E", "W", "F", "I", "N", "D", "UP", "S", "B", "A", "C4", "SIM", "RUF"]
 ignore = ["D203", "D213"]  # Prefer D212 over D213
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]  # Allow assert statements in tests
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
