@@ -1,0 +1,177 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  PYTHON: python
+  UV: uv
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list-all
+
+  # Dependency management
+  install:
+    desc: Install project dependencies
+    cmds:
+      - "{{.UV}} sync"
+
+  install-dev:
+    desc: Install project dependencies including dev tools
+    cmds:
+      - "{{.UV}} sync --group dev"
+
+  update:
+    desc: Update all dependencies to latest versions
+    cmds:
+      - "{{.UV}} lock --upgrade"
+      - "{{.UV}} sync --group dev"
+
+  # Code quality
+  lint:
+    desc: Run ruff linting
+    cmds:
+      - "{{.PYTHON}} -m ruff check src/ tests/"
+
+  lint-fix:
+    desc: Run ruff linting with auto-fix
+    cmds:
+      - "{{.PYTHON}} -m ruff check --fix src/ tests/"
+
+  format:
+    desc: Format code with ruff
+    cmds:
+      - "{{.PYTHON}} -m ruff format src/ tests/"
+
+  typecheck:
+    desc: Run mypy type checking
+    cmds:
+      - "{{.PYTHON}} -m mypy src/ --strict"
+
+  check:
+    desc: Run all code quality checks
+    deps: [lint, typecheck]
+    cmds:
+      - echo "All quality checks passed!"
+
+  # Testing
+  test:
+    desc: Run all tests
+    cmds:
+      - "{{.PYTHON}} -m pytest tests/ -v"
+
+  test-fast:
+    desc: Run tests without property-based testing (faster)
+    cmds:
+      - "{{.PYTHON}} -m pytest tests/test_core_types.py -v"
+
+  test-properties:
+    desc: Run only property-based tests
+    cmds:
+      - "{{.PYTHON}} -m pytest tests/test_core_properties.py -v"
+
+  test-coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - "{{.PYTHON}} -m pytest tests/ --cov=src/math_research --cov-report=html --cov-report=term"
+
+  # Development workflow
+  dev-setup:
+    desc: Complete development environment setup
+    cmds:
+      - task: install-dev
+      - task: check
+      - task: test
+      - echo "Development environment ready!"
+
+  pre-commit:
+    desc: Run pre-commit checks (lint, typecheck, test)
+    cmds:
+      - task: format
+      - task: check
+      - task: test-fast
+
+  # Application commands
+  repl:
+    desc: Start Python REPL with project modules loaded
+    cmds:
+      - "{{.PYTHON}} -c 'from src.math_research.core import *; print(\"Math research modules loaded\")' -i"
+
+  demo:
+    desc: Run a quick demo of core functionality
+    cmds:
+      - |
+        {{.PYTHON}} -c "
+        from src.math_research.core import MathElement, MathSet
+        
+        print('=== Math Research Framework Demo ===')
+        print()
+        
+        # Create some elements
+        elem1 = MathElement(value=1)
+        elem2 = MathElement(value=2)
+        elem3 = MathElement(value='x')
+        
+        print('Elements:')
+        print(f'  elem1 = {elem1}')
+        print(f'  elem2 = {elem2}')
+        print(f'  elem3 = {elem3}')
+        print()
+        
+        # Create a set
+        mathset = MathSet(elements=frozenset([elem1, elem2, elem3]))
+        print(f'Set: {mathset}')
+        print(f'Set size: {len(mathset)}')
+        print(f'Contains elem1: {elem1 in mathset}')
+        print()
+        
+        # Empty set
+        empty = MathSet(elements=frozenset())
+        print(f'Empty set: {empty}')
+        print()
+        
+        print('Demo complete! Use \"task repl\" for interactive exploration.')
+        "
+
+  # Documentation
+  docs-deps:
+    desc: Install documentation dependencies
+    cmds:
+      - "{{.UV}} add --group docs sphinx sphinx-rtd-theme"
+
+  docs-build:
+    desc: Build documentation
+    cmds:
+      - echo "Documentation building not yet implemented"
+      - echo "Run 'task docs-deps' first to install documentation tools"
+
+  # Clean up
+  clean:
+    desc: Clean up generated files
+    cmds:
+      - rm -rf .pytest_cache/
+      - rm -rf .mypy_cache/
+      - rm -rf .ruff_cache/
+      - rm -rf htmlcov/
+      - rm -rf .coverage
+      - find . -type d -name __pycache__ -exec rm -rf {} +
+      - find . -type f -name "*.pyc" -delete
+
+  clean-all:
+    desc: Clean up all generated files including virtual environment
+    cmds:
+      - task: clean
+      - rm -rf .venv/
+      - rm -rf *.egg-info/
+
+  # Project information
+  info:
+    desc: Show project information
+    cmds:
+      - echo "=== Math Research Project Info ==="
+      - echo "Python version:" $({{.PYTHON}} --version)
+      - echo "UV version:" $({{.UV}} --version)
+      - echo "Project structure:"
+      - tree -I '.venv|__pycache__|*.egg-info|.pytest_cache|.mypy_cache|.ruff_cache' --dirsfirst -L 3
