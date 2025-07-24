@@ -13,3 +13,4 @@ wheels/
 
 # AI Tools
 .claude
+.codacy
