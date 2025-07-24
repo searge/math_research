@@ -14,4 +14,29 @@ dev = [
     "mypy>=1.17.0",
     "ruff>=0.12.5",
     "pytest>=8.0.0",
+    "hypothesis>=6.0.0",
 ]
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+python_version = "3.13"
+
+[tool.ruff]
+fix = true
+line-length = 79
+exclude = [".venv"]
+src = ["src", "tests"]
+target-version = "py313"
+
+# Group violations by containing file.
+output-format = "grouped"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "D", "UP", "S", "B", "A", "C4", "SIM", "RUF"]
+ignore = ["D203", "D213"]  # Prefer D212 over D213
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
